@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Атом и ионы</title>
+<style>
+:root{
+  --bg:#0b1422;--panel:#111f31;--panel2:#17283d;--line:rgba(153,190,224,.17);
+  --blue:#55b8ff;--blue2:#238bd0;--cyan:#6de1ed;--text:#eaf4ff;
+  --muted:#91a9c2;--red:#ff777d;--green:#42d6ad;--orange:#ffb86b;
+  --paper:#f3f8fc;--ink:#17283a;--ink2:#52677d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);
+  background:radial-gradient(ellipse at 26% 18%,#1c3855 0%,#101e31 42%,#091321 100%);
+  display:flex;flex-direction:column}
+#topbar{height:68px;flex:0 0 68px;display:flex;align-items:center;gap:12px;padding:0 24px;
+  background:rgba(7,16,29,.72);border-bottom:1px solid var(--line);backdrop-filter:blur(16px);
+  box-shadow:0 8px 28px #02081255;z-index:5}
+#topbar h1{font-size:21px;font-weight:800;letter-spacing:.2px;margin-right:auto;color:#dff5ff}
+.brand-mark{color:var(--cyan);font-size:25px;margin-right:8px;text-shadow:0 0 18px #6de1ed88}
+.top-title{display:flex;align-items:center}
+.top-subtitle{font-size:12px;color:var(--muted);font-weight:500;margin-left:12px;padding-left:12px;border-left:1px solid var(--line)}
+button{font:inherit;border:0;cursor:pointer;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+.top-btn{padding:10px 17px;border-radius:11px;color:#f5fbff;font-size:13px;font-weight:750;
+  background:linear-gradient(135deg,#218fce,#176ca9);box-shadow:0 5px 16px #087fc044}
+.top-btn:hover{filter:brightness(1.14);transform:translateY(-1px)}
+.top-btn.secondary{background:#1b3048;border:1px solid #36516c;box-shadow:none;color:#cce5f7}
+.top-btn:active{transform:translateY(1px) scale(.98)}
+#backBtn,#resetBtn{display:none}
+#backBtn.active,#resetBtn.active{display:inline-flex}
+#stage{position:relative;flex:1;min-height:0;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;z-index:1;touch-action:none}
+#atomCard{position:absolute;left:18px;top:18px;bottom:18px;right:390px;border:1px solid rgba(139,190,229,.13);
+  border-radius:22px;background:linear-gradient(145deg,rgba(29,57,83,.12),rgba(5,16,29,.12));
+  box-shadow:inset 0 1px 0 #ffffff08,0 16px 45px #02081225;pointer-events:none}
+#rightPanel{position:absolute;z-index:3;right:18px;top:18px;bottom:18px;width:390px;display:flex;flex-direction:column;gap:14px;overflow:auto;scrollbar-width:thin;scrollbar-color:#36516c transparent;transition:background .2s,filter .2s}
+.card{background:linear-gradient(150deg,rgba(249,252,255,.98),rgba(230,241,249,.97));color:var(--ink);
+  border:1px solid #ffffffb8;border-radius:19px;padding:20px;box-shadow:0 15px 38px #02081245;transition:background .25s,box-shadow .25s}
+.card.success-flash{background:linear-gradient(145deg,#e4f8ec,#d2f1df);box-shadow:0 0 0 3px #6bd59a66,0 0 32px #56c98255,0 15px 38px #02081245}
+#rightPanel.error-flash .card{
+  background:linear-gradient(145deg,#fff0f0,#f8dddd);
+  box-shadow:0 0 0 2px #e66a7566,0 0 26px #e65f6844,0 15px 38px #02081245;
+}
+#rightPanel.error-flash .comp-row,
+#rightPanel.error-flash .charge-box,
+#rightPanel.error-flash .state-pill{filter:saturate(.88)}
+
+.card h2{font-size:20px;letter-spacing:.1px;font-weight:850;color:#173b5b;margin-bottom:19px;display:flex;align-items:center;gap:9px}
+.card h2:before{display:none}
+.composition-grid{display:grid;gap:9px}
+.comp-row{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:12px;padding:11px 12px;
+  border-radius:12px;background:#e9f1f7;color:#42596f;font-size:16px;font-weight:800}
+.particle-icon{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;box-sizing:border-box;padding:0;flex:0 0 32px;color:#fff;font-weight:900;font-size:15px;line-height:1;text-align:center;
+  box-shadow:inset -3px -4px 7px #0003,inset 2px 2px 5px #ffffff80,0 2px 5px #17314a22}
+.particle-symbol{display:block;width:100%;height:100%;line-height:32px;text-align:center;font-family:Arial,sans-serif;font-size:17px;font-weight:900;}
+.symbol-plus{transform:translateY(-1px)}
+.symbol-zero{transform:translateY(-.5px)}
+.symbol-minus{transform:translateY(-1px)}
+.comp-val{font-size:25px;line-height:1;font-weight:900;color:#183b5a;font-variant-numeric:tabular-nums}
+.particle-name{font-size:14px;letter-spacing:.35px;font-weight:950}
+.proton-name{color:#ff777d}.neutron-name{color:#25bd9a}.electron-name{color:#299fe5}
+.charge-box{margin-top:8px;padding:15px 16px;border-radius:13px;background:#dcecf7;display:flex;justify-content:space-between;align-items:center;
+  color:#35536c;font-size:15px;font-weight:800}
+#valCharge{font-size:25px;color:#147eaa;font-weight:950}
+.state-pill{margin-top:14px;display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;
+  background:#e8f5fb;color:#23628b;font-size:15px;font-weight:850}
+.state-dot{width:9px;height:9px;border-radius:50%;background:var(--blue2);box-shadow:0 0 0 4px #238bd01c}
+.hint{font-size:14px;line-height:1.5;color:#698096;margin-top:13px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;padding-top:13px;border-top:1px solid #d9e5ee}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:#60778b;font-weight:700}
+.legend-dot{width:9px;height:9px;border-radius:50%}
+#exercisePanel{display:none}
+#exercisePanel.active{display:block}
+.exercise-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.exercise-heading h2{margin:0}
+#exerciseNumber{font-size:11px;font-weight:900;color:#247db2;background:#dceef9;padding:6px 9px;border-radius:20px;white-space:nowrap}
+.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:0 0 16px}
+.progress span{height:5px;border-radius:5px;background:#d6e2eb;transition:background .2s}
+.progress span.done{background:#27b98d}
+.exercise-intro{font-size:15px;line-height:1.45;color:#63798d;margin-bottom:15px}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:12px;font-weight:900;color:#5a7085;letter-spacing:.25px}
+.field:nth-child(1) label{color:#e65f68}
+.field:nth-child(2) label{color:#159b79}
+.field:nth-child(3) label{color:#238fd0}
+.field input{width:100%;min-width:0;padding:11px 7px;border:1.5px solid #cbdbe7;border-radius:10px;background:#fff;
+  color:#183b5a;text-align:center;font-size:18px;font-weight:850;outline:none;transition:border .15s,box-shadow .15s}
+.field input:focus{border-color:#2998d4;box-shadow:0 0 0 3px #2998d422}
+.charge-label{font-size:13px;color:#5a7085;font-weight:850;margin:16px 0 8px}
+.charge-options{display:grid;gap:7px}
+.charge-option{position:relative;display:flex;align-items:center;gap:9px;padding:11px 12px;border:1.5px solid #d1dfe9;border-radius:11px;
+  background:#fff;color:#4d657a;font-size:12px;font-weight:750;cursor:pointer;transition:.16s}
+.charge-option:hover{border-color:#79b8db;background:#f4faff}
+.charge-option{font-size:14px}
+.charge-option input{accent-color:#218fce;width:15px;height:15px}
+#checkBtn{width:100%;margin-top:15px;padding:12px 14px;border-radius:11px;background:linear-gradient(135deg,#1e9dca,#167ab6);
+  color:#fff;font-size:13px;font-weight:900;box-shadow:0 6px 15px #1684bd33}
+#checkBtn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+#checkBtn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+#exFeedback{min-height:22px;margin-top:12px;text-align:center;font-size:13px;font-weight:900}
+.verdict-ok{color:#14865f}.verdict-bad{color:#c34450}
+#scorePanel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid #d9e5ee}
+#completionPanel{display:none;text-align:center;padding:15px 8px 5px}
+#completionPanel.visible{display:block}
+#exercisePanel.completed > :not(#completionPanel){display:none!important}
+.completion-icon{width:58px;height:58px;margin:2px auto 13px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;background:linear-gradient(145deg,#42d6ad,#159b79);font-size:32px;font-weight:900;box-shadow:0 7px 20px #159b7940}
+#completionPanel h3{font-size:21px;color:#167b5c;margin-bottom:9px}
+#completionPanel p{font-size:14px;line-height:1.5;color:#536f83}
+.completion-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:17px 0}
+.completion-stats div{padding:12px 7px;border-radius:12px;background:#e3f3eb;display:flex;flex-direction:column;gap:4px}
+.completion-stats strong{font-size:21px;color:#16805e}
+.completion-stats span{font-size:11px;color:#58796b;font-weight:800}
+#completionPanel .completion-note{display:block;width:100%;margin:18px 0 4px;font-size:23px;line-height:1.2;font-weight:950;letter-spacing:.1px;color:#16805e;text-align:center}
+.score{padding:9px;border-radius:10px;background:#e9f5f1;color:#16805e;font-size:12px;font-weight:800;text-align:center}
+.score.bad{background:#faeded;color:#bd4d55}
+.score strong{font-size:18px;margin-left:4px}
+#watermark{position:absolute;z-index:2;left:28px;bottom:22px;color:#a8c4dc65;font-size:11px;font-weight:800;letter-spacing:1.8px;pointer-events:none}
+@media(max-width:900px){
+  #topbar{height:60px;flex-basis:60px;padding:0 12px;gap:7px}
+  #topbar h1{font-size:17px}.top-subtitle{display:none}.top-btn{padding:9px 11px;font-size:12px}
+  #stage{overflow:auto}
+  #atomCard{right:12px;bottom:auto;height:58%;top:12px}
+  #rightPanel{left:12px;right:12px;top:calc(58% + 24px);bottom:12px;width:auto;overflow:visible}
+  #watermark{display:none}
+}
+@media(max-width:520px){
+  #topbar h1{font-size:15px}.brand-mark{font-size:20px;margin-right:4px}
+  .top-btn{padding:8px 9px;font-size:11px}
+  .card{padding:16px}
+  .card h2{font-size:18px}
+  .comp-row{font-size:14px}
+  .particle-name{font-size:12px}
+  #rightPanel{gap:10px}
+}
+</style>
+</head>
+<body>
+<header id="topbar">
+  <div class="top-title"><h1><span class="brand-mark">⚛</span>Атом и ионы</h1></div>
+  <button id="resetBtn" class="top-btn secondary active">↺ Сброс</button>
+  <button id="exBtn" class="top-btn">Упражнения</button>
+  <button id="backBtn" class="top-btn secondary">← К атому</button>
+</header>
+
+<main id="stage">
+  <div id="atomCard"></div>
+  <canvas id="cv"></canvas>
+  <section id="rightPanel">
+    <div class="card" id="compositionCard">
+      <h2>Состав атома или иона</h2>
+      <div class="composition-grid">
+        <div class="comp-row"><span class="particle-icon" style="background:#ff777d"><span class="particle-symbol symbol-plus">+</span></span><span>Протоны</span><strong class="comp-val" id="valP">6</strong></div>
+        <div class="comp-row"><span class="particle-icon" style="background:#25bd9a"><span class="particle-symbol symbol-zero">0</span></span><span>Нейтроны</span><strong class="comp-val" id="valN">6</strong></div>
+        <div class="comp-row"><span class="particle-icon" style="background:#299fe5"><span class="particle-symbol symbol-minus">−</span></span><span>Электроны</span><strong class="comp-val" id="valE">6</strong></div>
+      </div>
+      <div class="charge-box"><span>Электрический заряд</span><strong id="valCharge">0</strong></div>
+      <div class="state-pill"><span class="state-dot" id="stateDot"></span><span id="stateText">Нейтральный атом</span></div>
+      <p class="hint">Перетаскивайте электроны между орбитами и «скамейкой запасных», чтобы менять заряд частицы. Нажмите на ядро, чтобы посмотреть, из чего оно состоит.</p>
+      <div class="legend">
+        <span class="legend-item"><i class="legend-dot" style="background:#ff777d"></i>протон</span>
+        <span class="legend-item"><i class="legend-dot" style="background:#25bd9a"></i>нейтрон</span>
+        <span class="legend-item"><i class="legend-dot" style="background:#299fe5"></i>электрон</span>
+      </div>
+    </div>
+
+    <div class="card" id="exercisePanel">
+      <div class="exercise-heading"><h2>Определите частицу</h2><span id="exerciseNumber">№ 1 / 5</span></div>
+      <div class="progress" id="progress"><span></span><span></span><span></span><span></span><span></span></div>
+      <p class="exercise-intro">Рассмотрите модель и укажите число частиц и электрический заряд.</p>
+      <div class="fields">
+        <div class="field"><label for="exP">ПРОТОНЫ</label><input type="number" id="exP" min="0" max="30" inputmode="numeric"></div>
+        <div class="field"><label for="exN">НЕЙТРОНЫ</label><input type="number" id="exN" min="0" max="30" inputmode="numeric"></div>
+        <div class="field"><label for="exE">ЭЛЕКТРОНЫ</label><input type="number" id="exE" min="0" max="30" inputmode="numeric"></div>
+      </div>
+      <div class="charge-label">ЭЛЕКТРИЧЕСКИЙ ЗАРЯД</div>
+      <div class="charge-options">
+        <label class="charge-option"><input type="radio" name="exType" value="neutral"> Нейтральный атом</label>
+        <label class="charge-option"><input type="radio" name="exType" value="positive"> Положительный ион</label>
+        <label class="charge-option"><input type="radio" name="exType" value="negative"> Отрицательный ион</label>
+      </div>
+      <button id="checkBtn">Проверить ответ</button>
+      <div id="exFeedback" aria-live="polite"></div>
+      <div id="scorePanel">
+        <div class="score">✓ Верно <strong id="scoreCorrect">0</strong></div>
+        <div class="score bad">✕ Ошибки <strong id="scoreIncorrect">0</strong></div>
+      </div>
+      <div id="completionPanel">
+        <div class="completion-icon">✓</div>
+        <h3>Все задания выполнены!</h3>
+        <p>Вы правильно определили все пять частиц. Ошибки по ходу работы не помешали завершить тренировку.</p>
+        <div class="completion-stats">
+          <div><strong>5 из 5</strong><span>заданий выполнено</span></div>
+          <div><strong id="finalErrors">0</strong><span>ошибок за работу</span></div>
+        </div>
+        <p class="completion-note">Отличная работа!</p>
+      </div>
+    </div>
+  </section>
+  <div id="watermark">АлексеЕВа</div>
+</main>
+
+<script>
+"use strict";
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+const stage = document.getElementById("stage");
+const atomCard = document.getElementById("atomCard");
+const panel = document.getElementById("rightPanel");
+
+const PROTON_COLOR = "#ff777d";
+const NEUTRON_COLOR = "#25bd9a";
+const ELECTRON_COLOR = "#299fe5";
+
+let W=0,H=0,sceneW=0,cardW=0,cardH=0,cardX=18,cardY=18;
+let nucleusCX=0,nucleusCY=0,nucleusRadius=34,orbit1R=95,orbit2R=155,benchY=0;
+let dpr=1;
+function resize(){
+  const rect=stage.getBoundingClientRect();
+  W=rect.width; H=rect.height;
+  const mobile=window.matchMedia("(max-width: 900px)").matches;
+  const panelRect=panel.getBoundingClientRect();
+  sceneW=mobile?W:Math.max(300,W-panelRect.width-54);
+  cardW=Math.max(260,sceneW-36);
+  cardH=mobile?Math.max(220,H*.58-24):Math.max(260,H-36);
+  atomCard.style.width=cardW+"px";
+  atomCard.style.height=cardH+"px";
+  atomCard.style.right="auto";
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  cv.style.width=W+"px";cv.style.height=H+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  layoutAll();
+}
+window.addEventListener("resize",resize);
+if("ResizeObserver" in window)new ResizeObserver(resize).observe(panel);
+
+let audioCtx=null;
+function tone(freq,start,dur,type="sine",vol=.12){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended")audioCtx.resume();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;o.connect(g);g.connect(audioCtx.destination);
+    const t=audioCtx.currentTime+start;
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.start(t);o.stop(t+dur+.03);
+  }catch(e){}
+}
+function successSound(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.27));}
+function failSound(){[392,330,262].forEach((f,i)=>tone(f,i*.17,.32,"triangle",.1));}
+function clickSound(){tone(610,0,.09,"sine",.07);}
+
+const atom={protons:6,neutrons:6,electronsOnOrbit:6,benchSlots:6,benchElectrons:2,
+  expanded:false,nucleusOffset:0,targetOffset:0,electronPos:[],benchPos:[]};
+let dragging=null,dragTrail=[];
+let mode="atom",exerciseParticles=[],currentExerciseIndex=-1,scoreCorrect=0,scoreIncorrect=0;
+
+function orbitConfig(total){
+  const out=[],first=Math.min(2,total),second=total-first;
+  for(let i=0;i<first;i++)out.push({orbit:0,idx:i});
+  for(let i=0;i<second;i++)out.push({orbit:1,idx:i});
+  return out;
+}
+function buildElectronPositions(){
+  const cfg=orbitConfig(atom.electronsOnOrbit);
+  const secondCount=cfg.filter(x=>x.orbit===1).length;
+  const old=atom.electronPos||[];
+  atom.electronPos=cfg.map((c,i)=>{
+    const count=c.orbit===0?2:secondCount;
+    const ang=-Math.PI/2+c.idx*(Math.PI*2/Math.max(1,count));
+    const r=c.orbit===0?orbit1R:orbit2R;
+    const tx=nucleusCX+Math.cos(ang)*r,ty=nucleusCY+Math.sin(ang)*r;
+    const prev=old[i];
+    return{orbit:c.orbit,index:c.idx,x:prev?prev.x:tx,y:prev?prev.y:ty,tx,ty,ang};
+  });
+}
+function buildBenchPositions(){
+  atom.benchPos=[];
+  const slotW=43,total=atom.benchSlots;
+  const centerX=Math.min(W-190,Math.max(sceneW*.5,sceneW*.5));
+  const startX=centerX-(total-1)*slotW/2;
+  const yPos=Math.min(H-62,cardY+cardH-47);
+  for(let i=0;i<total;i++)atom.benchPos.push({x:startX+i*slotW,y:yPos});
+  benchY=yPos;
+}
+function layoutAll(){
+  nucleusCX=cardX+cardW*.5;
+  nucleusCY=cardY+cardH*.47;
+  orbit2R=Math.min(cardH*.32,cardW*.34,205);
+  orbit1R=orbit2R*.55;
+  nucleusRadius=orbit2R*.30;
+  buildElectronPositions();buildBenchPositions();
+}
+function makeNucleons(p,n){
+  const pts=[],total=p+n,golden=Math.PI*(3-Math.sqrt(5));
+  for(let i=0;i<total;i++){
+    const y=1-(i/Math.max(1,total-1))*2;
+    const rr=Math.sqrt(Math.max(0,1-y*y)),theta=golden*i;
+    pts.push({x:Math.cos(theta)*rr,y,z:Math.sin(theta)*rr});
+  }
+  const types=[];let pi=0,ni=0;
+  for(let i=0;i<total;i++){
+    if((i%2===0&&pi<p)||ni>=n){types.push("p");pi++;}
+    else{types.push("n");ni++;}
+  }
+  return pts.map((pt,i)=>({...pt,type:types[i]}));
+}
+let nucleons=makeNucleons(atom.protons,atom.neutrons);
+
+function rgb(hex){const s=hex.replace("#","");return{r:parseInt(s.slice(0,2),16),g:parseInt(s.slice(2,4),16),b:parseInt(s.slice(4,6),16)}}
+function lighten(hex,a){const c=rgb(hex);return`rgb(${(c.r+(255-c.r)*a)|0},${(c.g+(255-c.g)*a)|0},${(c.b+(255-c.b)*a)|0})`}
+function darken(hex,a){const c=rgb(hex);return`rgb(${(c.r*(1-a))|0},${(c.g*(1-a))|0},${(c.b*(1-a))|0})`}
+function drawSphere(x,y,r,color,glow=false){
+  ctx.save();
+  if(glow){ctx.shadowColor=color;ctx.shadowBlur=r*.8;}
+  const g=ctx.createRadialGradient(x-r*.34,y-r*.36,r*.06,x,y,r);
+  g.addColorStop(0,lighten(color,.76));g.addColorStop(.48,color);g.addColorStop(1,darken(color,.42));
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+  ctx.lineWidth=Math.max(.7,r*.055);ctx.strokeStyle="#ffffff72";ctx.stroke();
+  ctx.restore();
+}
+function centeredText(text,x,y,size){
+  ctx.save();ctx.font=`800 ${size}px system-ui`;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="#fff";ctx.shadowColor="#0005";ctx.shadowBlur=2;ctx.fillText(text,x,y);ctx.restore();
+}
+function drawElectron(x,y,r,glow=false){
+  drawSphere(x,y,r,ELECTRON_COLOR,glow);
+  ctx.save();ctx.strokeStyle="#fff";ctx.lineCap="round";ctx.lineWidth=Math.max(1.7,r*.17);
+  ctx.beginPath();ctx.moveTo(x-r*.38,y);ctx.lineTo(x+r*.38,y);ctx.stroke();ctx.restore();
+}
+function drawNucleus(cx,cy,r,particles,spread){
+  const sorted=[...particles].sort((a,b)=>a.z-b.z);
+  const compact=particles.length<=7?.34:.49;
+  const packedR=r*(compact+spread*.62),nr=r*(particles.length<=7?.37:.32);
+  sorted.forEach(n=>{
+    const x=cx+n.x*packedR,y=cy+n.y*packedR,pr=nr*(1+(n.z+1)*.045);
+    drawSphere(x,y,pr,n.type==="p"?PROTON_COLOR:NEUTRON_COLOR);
+    if(n.type==="p")centeredText("+",x,y,Math.max(9,pr*.88));
+  });
+}
+function drawOrbits(cx=nucleusCX,cy=nucleusCY,r1=orbit1R,r2=orbit2R){
+  ctx.save();
+  [r1,r2].forEach((r,i)=>{
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle=i===0?"#8ed7ff45":"#8ed7ff66";ctx.lineWidth=i===0?1.3:1.7;
+    ctx.setLineDash([3,8]);ctx.stroke();
+  });
+  ctx.restore();
+}
+function drawBench(){
+  const slots=atom.benchPos;
+  if(!slots.length)return;
+  const x0=slots[0].x-23,x1=slots[slots.length-1].x+23,y=benchY;
+  const w=x1-x0,h=58,px=x0,py=y-29;
+  ctx.save();
+  ctx.fillStyle="#0d1d2d9c";ctx.strokeStyle="#85b9dc45";ctx.lineWidth=1;
+  roundRect(px,py,w,h,14);ctx.fill();ctx.stroke();ctx.restore();
+  ctx.save();ctx.fillStyle="#b6cce0";ctx.font="700 12px system-ui";ctx.textAlign="center";
+  ctx.fillText("СКАМЕЙКА ЗАПАСНЫХ",px+w/2,py-9);ctx.restore();
+  slots.forEach((s,i)=>{
+    ctx.save();ctx.beginPath();ctx.arc(s.x,s.y,15,0,Math.PI*2);
+    ctx.strokeStyle="#9ab8d44d";ctx.setLineDash([3,4]);ctx.stroke();ctx.restore();
+    if(i<atom.benchElectrons&&!(dragging?.origin==="bench"&&dragging.idx===i))drawElectron(s.x,s.y,12);
+  });
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function drawPill(text,cx,cy,color){
+  ctx.save();ctx.font="800 17px system-ui";const w=ctx.measureText(text).width+34,h=38;
+  ctx.fillStyle="#eaf5fcf2";ctx.strokeStyle="#b8d7e9";ctx.lineWidth=1;
+  roundRect(cx-w/2,cy-h/2,w,h,12);ctx.fill();ctx.stroke();
+  ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,cx,cy+.5);ctx.restore();
+}
+function getAtomState(){
+  const q=atom.protons-atom.electronsOnOrbit;
+  return q===0?{name:"Нейтральный атом",charge:"0",color:"#159b79"}:
+    q>0?{name:"Положительный ион",charge:"+"+q,color:"#d34f5d"}:
+    {name:"Отрицательный ион",charge:String(q),color:"#2189c8"};
+}
+function updateSidePanel(){
+  const state=getAtomState();
+  document.getElementById("valP").textContent=atom.protons;
+  document.getElementById("valN").textContent=atom.neutrons;
+  document.getElementById("valE").textContent=atom.electronsOnOrbit;
+  const charge=document.getElementById("valCharge");charge.textContent=state.charge;charge.style.color=state.color;
+  document.getElementById("stateText").textContent=state.name;
+  document.getElementById("stateDot").style.background=state.color;
+  document.getElementById("stateDot").style.boxShadow=`0 0 0 4px ${state.color}22`;
+}
+function drawTrail(){
+  if(dragTrail.length<2)return;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
+  for(let i=1;i<dragTrail.length;i++){
+    const a=dragTrail[i-1],b=dragTrail[i];
+    const alpha=Math.max(0,Math.min(a.life,b.life))/24;
+    if(alpha<=0)continue;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=`rgba(105,211,255,${alpha*.85})`;
+    ctx.lineWidth=1.5+alpha*4;ctx.shadowColor="#45bfff";ctx.shadowBlur=14*alpha;ctx.stroke();
+  }
+  ctx.restore();
+  dragTrail.forEach(p=>p.life-=1);
+  dragTrail=dragTrail.filter(p=>p.life>0);
+}
+function animate(){
+  ctx.clearRect(0,0,W,H);
+  if(mode==="exercise"){drawExercise();requestAnimationFrame(animate);return;}
+  atom.nucleusOffset+=(atom.targetOffset-atom.nucleusOffset)*.12;
+  atom.electronPos.forEach(e=>{e.x+=(e.tx-e.x)*.18;e.y+=(e.ty-e.y)*.18;});
+  drawOrbits();
+  drawNucleus(nucleusCX,nucleusCY,nucleusRadius,nucleons,atom.nucleusOffset);
+  atom.electronPos.forEach((e,i)=>{
+    if(dragging?.origin==="orbit"&&dragging.idx===i)return;
+    drawElectron(e.x,e.y,Math.max(10,orbit2R*.075));
+  });
+  drawBench();
+  const s=getAtomState();drawPill(s.name,nucleusCX,nucleusCY-orbit2R-48,s.color);
+  if(dragging)drawElectron(dragging.x,dragging.y,Math.max(11,orbit2R*.08),true);
+  drawTrail();
+  updateSidePanel();
+  requestAnimationFrame(animate);
+}
+function hitElectron(x,y){
+  const r=Math.max(16,orbit2R*.105);
+  for(let i=0;i<atom.electronPos.length;i++){const e=atom.electronPos[i];if(Math.hypot(e.x-x,e.y-y)<r)return{origin:"orbit",idx:i};}
+  for(let i=0;i<atom.benchElectrons;i++){const s=atom.benchPos[i];if(Math.hypot(s.x-x,s.y-y)<r)return{origin:"bench",idx:i};}
+  return null;
+}
+function hitNucleus(x,y){return Math.hypot(x-nucleusCX,y-nucleusCY)<nucleusRadius*1.15;}
+function inBench(x,y){
+  if(!atom.benchPos.length)return false;
+  const first=atom.benchPos[0],last=atom.benchPos.at(-1);
+  return x>=first.x-24&&x<=last.x+24&&y>=benchY-30&&y<=benchY+30;
+}
+function inOrbitArea(x,y){
+  const d=Math.hypot(x-nucleusCX,y-nucleusCY);
+  return d>nucleusRadius*.9&&d<orbit2R+32;
+}
+function mouse(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+cv.addEventListener("pointerdown",e=>{
+  if(mode!=="atom")return;
+  const {x,y}=mouse(e);
+  if(hitNucleus(x,y)){atom.expanded=!atom.expanded;atom.targetOffset=atom.expanded?1:0;clickSound();return;}
+  const hit=hitElectron(x,y);
+  if(hit){dragging={...hit,x,y};dragTrail=[{x,y,life:24}];cv.setPointerCapture(e.pointerId);cv.style.cursor="grabbing";}
+});
+cv.addEventListener("pointermove",e=>{
+  if(mode!=="atom")return;
+  const {x,y}=mouse(e);
+  if(dragging){dragging.x=x;dragging.y=y;dragTrail.push({x,y,life:24});if(dragTrail.length>24)dragTrail.shift();}
+  else cv.style.cursor=hitElectron(x,y)?"grab":hitNucleus(x,y)?"pointer":"default";
+});
+function rebuildElectrons(){
+  const old=atom.electronPos.map(e=>({x:e.x,y:e.y}));
+  buildElectronPositions();
+  atom.electronPos.forEach((e,i)=>{if(old[i]){e.x=old[i].x;e.y=old[i].y;}});
+}
+cv.addEventListener("pointerup",e=>{
+  if(!dragging)return;
+  const {x,y}=mouse(e),origin=dragging.origin;
+  if(origin==="orbit"){
+    if(inBench(x,y)&&atom.benchElectrons<atom.benchSlots){
+      atom.electronsOnOrbit=Math.max(0,atom.electronsOnOrbit-1);atom.benchElectrons++;rebuildElectrons();
+    }
+  }else if(origin==="bench"){
+    if(inOrbitArea(x,y)&&atom.electronsOnOrbit<8){
+      atom.benchElectrons--;atom.electronsOnOrbit++;rebuildElectrons();
+    }
+  }
+  dragging=null;cv.style.cursor="default";
+});
+cv.addEventListener("pointercancel",()=>{dragging=null;cv.style.cursor="default";});
+
+const EXERCISE_DEFS=[
+  {name:"атом гелия-4",p:2,n:2,e:2,type:"neutral"},
+  {name:"отрицательный ион азота",p:7,n:6,e:9,type:"negative"},
+  {name:"отрицательный ион кислорода",p:8,n:8,e:9,type:"negative"},
+  {name:"атом лития-7",p:3,n:4,e:3,type:"neutral"},
+  {name:"положительный ион бора",p:5,n:6,e:4,type:"positive"}
+];
+function updateProgress(){
+  document.querySelectorAll("#progress span").forEach((el,i)=>el.classList.toggle("done",i<scoreCorrect));
+  document.getElementById("exerciseNumber").textContent=`№ ${currentExerciseIndex+1} / ${exerciseParticles.length}`;
+}
+function updateScore(){
+  document.getElementById("scoreCorrect").textContent=scoreCorrect;
+  document.getElementById("scoreIncorrect").textContent=scoreIncorrect;
+  updateProgress();
+}
+let errorFlashTimer=null;
+function flashPanelError(){
+  const rightPanel=document.getElementById("rightPanel");
+  rightPanel.classList.remove("error-flash");
+  void rightPanel.offsetWidth;
+  rightPanel.classList.add("error-flash");
+  if(errorFlashTimer)window.clearTimeout(errorFlashTimer);
+  errorFlashTimer=window.setTimeout(()=>rightPanel.classList.remove("error-flash"),650);
+}
+function startExercises(){
+  mode="exercise";
+  document.getElementById("compositionCard").style.display="none";
+  document.getElementById("exercisePanel").classList.add("active");
+  document.getElementById("exBtn").style.display="none";
+  document.getElementById("backBtn").classList.add("active");
+  document.getElementById("resetBtn").classList.remove("active");
+  scoreCorrect=0;scoreIncorrect=0;
+  document.getElementById("exercisePanel").classList.remove("completed");
+  document.getElementById("completionPanel").classList.remove("visible");
+  document.getElementById("rightPanel").classList.remove("error-flash");
+  exerciseParticles=[...EXERCISE_DEFS].sort(()=>Math.random()-.5).map(def=>({...def,solved:false,expanded:false,nucleusOffset:0,targetOffset:0,cx:0,cy:0,nucleusRadius:0}));
+  currentExerciseIndex=0;layoutExercise();updateScore();
+  resize();
+}
+function exitExercises(){
+  mode="atom";
+  document.getElementById("compositionCard").style.display="block";
+  document.getElementById("exercisePanel").classList.remove("active");
+  document.getElementById("exercisePanel").classList.remove("completed");
+  document.getElementById("completionPanel").classList.remove("visible");
+  document.getElementById("exBtn").style.display="inline-flex";
+  document.getElementById("backBtn").classList.remove("active");
+  document.getElementById("resetBtn").classList.add("active");
+  layoutAll();resize();
+}
+function layoutExercise(){
+  if(!exerciseParticles.length)return;
+  const p=exerciseParticles[currentExerciseIndex];
+  p.cx=cardX+cardW*.5;p.cy=cardY+cardH*.48;p.nucleusRadius=Math.min(cardH*.105,cardW*.105,62);
+  document.getElementById("exP").value="";
+  document.getElementById("exN").value="";
+  document.getElementById("exE").value="";
+  document.querySelectorAll('input[name="exType"]').forEach(x=>x.checked=false);
+  const fb=document.getElementById("exFeedback");fb.textContent="";fb.className="";
+  const btn=document.getElementById("checkBtn");btn.disabled=false;btn.textContent="Проверить ответ";
+  updateProgress();
+}
+function drawExercise(){
+  if(!exerciseParticles.length||currentExerciseIndex<0)return;
+  const p=exerciseParticles[currentExerciseIndex];
+  p.nucleusOffset+=(p.targetOffset-p.nucleusOffset)*.12;
+  const cx=p.cx,cy=p.cy,nr=p.nucleusRadius,o1=nr*2.45,o2=nr*4.05;
+  const total=p.p+p.n,nucR=nr*.64,nucleonR=nucR/Math.cbrt(Math.max(1,total))*.83;
+  const particles=makeNucleons(p.p,p.n);
+  drawOrbits(cx,cy,o1,o2);
+  drawNucleus(cx,cy,nucR,particles,p.nucleusOffset);
+  const first=Math.min(2,p.e),second=p.e-first,er=Math.max(8,nr*.16);
+  for(let i=0;i<first;i++){const a=-Math.PI/2+i*Math.PI;drawElectron(cx+Math.cos(a)*o1,cy+Math.sin(a)*o1,er);}
+  for(let i=0;i<second;i++){const a=-Math.PI/2+i*2*Math.PI/Math.max(1,second);drawElectron(cx+Math.cos(a)*o2,cy+Math.sin(a)*o2,er);}
+  if(p.solved){const c=p.type==="neutral"?"#159b79":p.type==="negative"?"#238fd0":"#df5964";drawPill(p.name,cx,cy-o2-48,c);}
+  ctx.save();ctx.font="800 13px system-ui";ctx.fillStyle="#b9d1e5";ctx.textAlign="left";ctx.fillText(`ЗАДАНИЕ ${currentExerciseIndex+1} ИЗ ${exerciseParticles.length}`,cardX+18,cardY+22);ctx.restore();
+}
+cv.addEventListener("click",e=>{
+  if(mode!=="exercise"||!exerciseParticles.length)return;
+  const {x,y}=mouse(e),p=exerciseParticles[currentExerciseIndex];
+  if(Math.hypot(x-p.cx,y-p.cy)<p.nucleusRadius*1.25){p.expanded=!p.expanded;p.targetOffset=p.expanded?1:0;clickSound();}
+});
+function selectedType(){return document.querySelector('input[name="exType"]:checked')?.value||"";}
+document.getElementById("checkBtn").addEventListener("click",()=>{
+  if(mode!=="exercise"||currentExerciseIndex<0)return;
+  const p=exerciseParticles[currentExerciseIndex],fb=document.getElementById("exFeedback");
+  if(p.solved){
+    if(currentExerciseIndex+1<exerciseParticles.length){currentExerciseIndex++;layoutExercise();}
+    else{fb.textContent="ВСЕ УПРАЖНЕНИЯ РЕШЕНЫ!";fb.className="verdict-ok";document.getElementById("checkBtn").disabled=true;}
+    return;
+  }
+  const a=document.getElementById("exP").value.trim(),b=document.getElementById("exN").value.trim(),c=document.getElementById("exE").value.trim(),t=selectedType();
+  if(a===""||b===""||c===""||!t){fb.textContent="Заполните все поля";fb.className="verdict-bad";return;}
+  const ok=Number(a)===p.p&&Number(b)===p.n&&Number(c)===p.e&&t===p.type;
+  if(ok){
+    p.solved=true;scoreCorrect++;updateScore();successSound();fb.textContent="ВЕРНО!";fb.className="verdict-ok";
+    const exerciseCard=document.getElementById("exercisePanel");
+    exerciseCard.classList.add("success-flash");
+    window.setTimeout(()=>exerciseCard.classList.remove("success-flash"),950);
+    if(currentExerciseIndex+1<exerciseParticles.length){
+      document.getElementById("checkBtn").textContent="Следующее задание →";
+    }else{
+      document.getElementById("finalErrors").textContent=scoreIncorrect;
+      document.getElementById("completionPanel").classList.add("visible");
+      document.getElementById("exercisePanel").classList.add("completed");
+      document.getElementById("backBtn").textContent="← К атому";
+    }
+  }else{
+    scoreIncorrect++;updateScore();failSound();fb.textContent="ПОПРОБУЙТЕ ЕЩЁ РАЗ";fb.className="verdict-bad";
+    flashPanelError();
+  }
+});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  mode="atom";atom.electronsOnOrbit=6;atom.benchElectrons=2;atom.expanded=false;atom.targetOffset=0;atom.nucleusOffset=0;
+  dragging=null;nucleons=makeNucleons(atom.protons,atom.neutrons);layoutAll();updateSidePanel();
+});
+document.getElementById("exBtn").addEventListener("click",startExercises);
+document.getElementById("backBtn").addEventListener("click",exitExercises);
+
+resize();
+layoutAll();
+updateSidePanel();
+animate();
+</script>
+</body>
+</html>
